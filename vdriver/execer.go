@@ -42,6 +42,11 @@ func (c *vConn) ExecContext(ctx context.Context, query string, args []driver.Nam
 			return nil, driver.ErrBadConn
 		}
 
+		// This is a special case for statements that have no rows and no effect, like "SET PROPERTY ..."
+		if response.Error == "neither cursor nor affectedRows" {
+			return vResult{}, nil
+		}
+
 		return nil, fmt.Errorf("valentina error: %s", response.Error)
 	}
 	if resp.StatusCode != http.StatusOK {

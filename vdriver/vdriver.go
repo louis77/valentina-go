@@ -23,6 +23,9 @@ const (
 	contentType   = "application/json"
 	acceptType    = "application/json"
 	defaultVendor = "Valentina"
+
+	kDateFormat    = "kYMD"
+	kDateSeparater = "-"
 )
 
 var (
@@ -72,6 +75,19 @@ func (d vDriver) Open(restURL string) (driver.Conn, error) {
 		return nil, fmt.Errorf("cannot create session: %w", err)
 	}
 
+	// Set the date format for this connection. This is required for the time.Time type.
+	// Both proerties are only visible to the current connection and not persisted in the database,
+	// see https://valentina-db.com/docs/dokuwiki/v15/doku.php?id=valentina:vcomponents:vkernel:database:datetime_format&s[]=kymd
+	err = conn.setDatabasePropertyString("DateTimeFormat", kDateFormat)
+	if err != nil {
+		return nil, fmt.Errorf("cannot set database DateTimeFormat property: %w", err)
+	}
+
+	err = conn.setDatabasePropertyString("DateSeparator", kDateSeparater)
+	if err != nil {
+		return nil, fmt.Errorf("cannot set database DateSeparator property: %w", err)
+	}
+
 	return &conn, nil
 }
 
@@ -79,52 +95,37 @@ type vError struct {
 	Error string
 }
 
-// Connection
-
-type vConn struct {
-	httpClient *http.Client
-	restURL    *url.URL
-	sessionID  string
-	database   string
-	vendor     string
-}
-
-func (c *vConn) Prepare(query string) (driver.Stmt, error) {
-	return &vStmt{
-		query: query,
-		conn:  c,
-	}, nil
-}
-
-// Close idle HTTP connection to the server. Otherwise it's doing nothing.
-func (c *vConn) Close() error {
-	ctx := context.Background()
-	resp, err := c.makeRequest(ctx, http.MethodDelete, "/rest/"+c.sessionID, nil)
+// Connection helpers
+func (c *vConn) getDatabasePropertyString(name string) (string, error) {
+	rows, err := c.QueryContext(context.Background(), "GET PROPERTY "+name+" OF DATABASE", nil)
 	if err != nil {
-		return fmt.Errorf("makeRequest failed: %w", err)
+		return "", fmt.Errorf("cannot get database property: %w", err)
 	}
-	defer resp.Body.Close()
+	defer rows.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		// Check if it has a body
-		if resp.ContentLength == 0 {
-			return fmt.Errorf("unexpected status code: %v", resp.StatusCode)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err == nil {
-			return fmt.Errorf("error: %s", string(body))
-		}
+	values := make([]driver.Value, 1)
+
+	err = rows.Next(values)
+	if err != nil {
+		return "", fmt.Errorf("cannot get database property row: %w", err)
 	}
 
-	c.sessionID = ""
-	c.httpClient.CloseIdleConnections()
-	return nil
+	strval, ok := values[0].(string)
+	if !ok {
+		return "", fmt.Errorf("database properties is not a string")
+	}
+	return strval, nil
 }
 
-func (c *vConn) Begin() (driver.Tx, error) {
-	return vTx{
-		conn: c,
-	}, nil
+func (c *vConn) setDatabasePropertyString(name string, value driver.Value) error {
+	_, err := c.ExecContext(context.Background(), "SET PROPERTY "+name+" OF DATABASE TO ?", []driver.NamedValue{
+		{Name: "", Ordinal: 1, Value: value},
+	})
+	if err != nil {
+		return fmt.Errorf("cannot set database properties: %w", err)
+	}
+
+	return nil
 }
 
 // Connection internals
@@ -235,7 +236,7 @@ type vFastSQLRequest struct {
 }
 
 type vFastSQLResponse struct {
-	AffectedRows int64 // Should this be a distinct struct?
+	AffectedRows int64
 
 	Name    string   `json:"name"`
 	Fields  []string `json:"fields"`
@@ -255,85 +256,4 @@ func (r vResult) LastInsertId() (int64, error) {
 
 func (r vResult) RowsAffected() (int64, error) {
 	return r.lastInsertId, nil
-}
-
-// Pinger
-
-func (c *vConn) Ping(ctx context.Context) error {
-	rows, err := c.QueryContext(ctx, "SELECT version()", nil)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	var version string
-	err = rows.Next([]driver.Value{&version})
-	if err != nil {
-		return err
-	}
-
-	if version == "" {
-		return fmt.Errorf("valentina error: version() returned an empty string")
-	}
-	fmt.Printf("Valentina server version: %s\n", version)
-	return nil
-}
-
-// Statement
-
-type vStmt struct {
-	conn  *vConn
-	query string
-}
-
-func (s vStmt) Close() error {
-	return nil
-}
-
-func (s vStmt) NumInput() int {
-	return 0
-}
-
-func (s vStmt) Exec(args []driver.Value) (driver.Result, error) {
-	return vResult{}, nil
-}
-
-func (s vStmt) Query(args []driver.Value) (driver.Rows, error) {
-	var namedArgs []driver.NamedValue
-	for i, arg := range args {
-		namedArgs = append(namedArgs, driver.NamedValue{
-			Name:    "",
-			Ordinal: i,
-			Value:   arg,
-		})
-	}
-	return s.conn.QueryContext(context.Background(), s.query, namedArgs)
-}
-
-// Row
-
-type vRows struct {
-	columns []string
-	records [][]any
-	pos     int
-}
-
-func (rows *vRows) Columns() []string {
-	return rows.columns
-}
-
-func (rows *vRows) Close() error { return nil }
-
-func (rows *vRows) Next(dest []driver.Value) error {
-	rows.pos++
-	if rows.pos > len(rows.records) {
-		return io.EOF
-	}
-
-	row := rows.records[rows.pos-1]
-	for idx, v := range row {
-		dest[idx] = v
-	}
-
-	return nil
 }
