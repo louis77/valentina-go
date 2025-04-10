@@ -86,6 +86,8 @@ The driver accepts the following parameters:
 
 ## Special Types
 
+### DateTime
+
 The `vsql` package provides a special type `Time` that can be used to scan Valentina time values. It implements the `Scanner` and `Valuer`. The driver sets the appropriate `DateFormat` and `DateSeparator` properties in the database for each new connection.
 
 ```go
@@ -94,9 +96,13 @@ var now vsql.Time
 err = row.Scan(&now)
 ```
 
+### Arrays
+
+Valentina supports the `ARRAY` type which is a fixed-size array of a specific underlying type. You can scan an array by using `[]any` as the destination type.
+
 ## Notes about Valentina SQL
 
-Placeholders for parameters are prefixed with a colon (`:`) and a number, starting from 1. This was, the same parameter can be used multiple times in the same query:
+Placeholders for parameters are prefixed with a colon (`:`) and a number, starting from 1. This way, the same parameter can be used multiple times in the query:
 
 ```sql
 SELECT :1 + :2
@@ -115,7 +121,7 @@ The driver will automatically convert the parameters to the right type.
 - Valentina does not support transactions
 - Valentina does not support implicit LastInsertId() when using Exec()
 - Prepared statements are not yet implemented
-- Expired REST session are automatically refreshed, queries will not fail because of an expired session. Make sure that your Valentina server license has appropriate number of sessions that you need.
+- Expired REST sessions are automatically refreshed, queries will not fail because of an expired session. Make sure that your Valentina server license has appropriate number of sessions that you need.
 
 ## Contributing
 

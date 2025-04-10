@@ -30,7 +30,7 @@ func exec(line string, verbose bool) {
 		return
 	}
 
-	values := make([]*string, len(columns))
+	values := make([][]any, len(columns))
 	pointers := make([]any, len(columns))
 	for i := range values {
 		pointers[i] = &values[i]
@@ -53,7 +53,7 @@ func exec(line string, verbose bool) {
 				fmt.Printf("%v\t", "NULL")
 				continue
 			}
-			fmt.Printf("%v\t", *value)
+			fmt.Printf("%v\t", value)
 		}
 		fmt.Println()
 	}

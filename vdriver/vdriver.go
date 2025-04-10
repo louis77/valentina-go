@@ -212,10 +212,7 @@ func (c *vConn) createSession() error {
 		return fmt.Errorf("missing Set-Cookie header")
 	}
 	cookieParts := strings.Split(cookieHeader, "=")
-	if len(cookieParts) != 2 {
-		return fmt.Errorf("invalid Set-Cookie header")
-	}
-	if cookieParts[0] != "sessionID" {
+	if len(cookieParts) != 2 || cookieParts[0] != "sessionID" {
 		return fmt.Errorf("invalid Set-Cookie header")
 	}
 
