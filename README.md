@@ -115,7 +115,7 @@ The driver will automatically convert the parameters to the right type.
 - Valentina does not support transactions
 - Valentina does not support implicit LastInsertId() when using Exec()
 - Prepared statements are not yet implemented
-- Expired REST session are automatically refreshed, queries willl not failed because of an expired session. Make sure that your Valentina server license has appropriate number of sessions that you need.
+- Expired REST session are automatically refreshed, queries will not fail because of an expired session. Make sure that your Valentina server license has appropriate number of sessions that you need.
 
 ## Contributing
 
