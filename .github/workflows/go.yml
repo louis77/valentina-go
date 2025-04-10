@@ -1,6 +1,3 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: Go
 
 on:
@@ -20,26 +17,32 @@ jobs:
           - 15434:15434
           - 15532:15532
           - 15534:15534
+          - 19998:19998
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Copy file to Valentina service
-      run: |
-        docker cp ./.github/vserver.ini valentina:/opt/VServer/vserver.ini
+      - name: Find Valentina container name
+        run: |
+          echo "Listing running containers..."
+          docker ps
+          CONTAINER_NAME=$(docker ps --filter "ancestor=paradigmasoft/valentina-server" --format "{{.Names}}")
+          echo "Valentina container name: $CONTAINER_NAME"
+          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
 
-    - name: Restart Valentina service
-      run: |
-        docker restart valentina
+      - name: Copy file to Valentina service
+        run: |
+          docker cp ./.github/vserver.ini "$CONTAINER_NAME":/opt/VServer/vserver.ini
 
-    - name: Wait for Valentina service to restart
-      run: |
-        echo "Waiting for Valentina service to restart..."
-        sleep 10
+      - name: Restart Valentina service
+        run: |
+          docker restart "$CONTAINER_NAME"
+          echo "Waiting for Valentina service to restart..."
+          sleep 10
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
 
-    - name: Test
-      run: go test -v ./...
+      - name: Test
+        run: go test -v ./...
