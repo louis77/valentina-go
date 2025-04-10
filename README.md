@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
 
 	row := db.QueryRow("SELECT now(), :1 as a_number", 69)
 

@@ -13,7 +13,7 @@ import (
 )
 
 func TestTables(t *testing.T) {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
@@ -30,7 +30,7 @@ func TestTables(t *testing.T) {
 }
 
 func TestTimeScan(t *testing.T) {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}

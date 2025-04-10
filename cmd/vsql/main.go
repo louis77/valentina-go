@@ -30,7 +30,7 @@ func exec(line string, verbose bool) {
 		return
 	}
 
-	values := make([][]any, len(columns))
+	values := make([]any, len(columns))
 	pointers := make([]any, len(columns))
 	for i := range values {
 		pointers[i] = &values[i]
@@ -70,7 +70,7 @@ func main() {
 	fHelp := flag.Bool("h", false, "Print this help")
 	flag.Parse()
 
-	if *fHelp || *fDB == "" || *fPort == 0 {
+	if *fHelp || *fPort == 0 { // *fDB == "" ||
 		flag.PrintDefaults()
 		return
 	}
