@@ -86,14 +86,12 @@ The driver accepts the following parameters:
 
 ## Special Types
 
-The `vsql` package provides a special type `Time` that can be used to scan Valentina time values. It implements the [Scanner](https://pkg.go.dev/database/sql#Scanner) interface and can be used like any other `sql/database` driver.
-
-To make this work, the driver sets the appropriate `DateFormat` and `DateSeparator` properties in the database for each new connection.
+The `vsql` package provides a special type `Time` that can be used to scan Valentina time values. It implements the `Scanner` and `Valuer`. The driver sets the appropriate `DateFormat` and `DateSeparator` properties in the database for each new connection.
 
 ```go
-	row := db.QueryRow("SELECT now()")
-	var now vsql.Time
-	err = row.Scan(&now)
+row := db.QueryRow("SELECT now()")
+var now vsql.Time
+err = row.Scan(&now)
 ```
 
 ## Notes about Valentina SQL
