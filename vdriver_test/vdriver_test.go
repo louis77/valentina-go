@@ -28,6 +28,10 @@ func Test(t *testing.T) {
 		t.Fatalf("failed to scan row: %v", err)
 	}
 
+	if anumber != 69 {
+		t.Fatalf("anumber is %d, expected 69", anumber)
+	}
+
 	fmt.Printf("Now() is %s, anumber is %d\n", now, anumber)
 	fmt.Printf("Connections in use: %d\n", db.Stats().InUse)
 }

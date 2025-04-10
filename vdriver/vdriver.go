@@ -116,6 +116,7 @@ func (c *vConn) Close() error {
 		}
 	}
 
+	c.sessionID = ""
 	c.httpClient.CloseIdleConnections()
 	return nil
 }
@@ -158,7 +159,6 @@ func (c *vConn) makeRequest(ctx context.Context, method string, resource string,
 	if err != nil {
 		return nil, fmt.Errorf("http request failed: %w", err)
 	}
-
 	return resp, nil
 }
 
@@ -268,6 +268,11 @@ func (c *vConn) QueryContext(ctx context.Context, query string, args []driver.Na
 		return nil, fmt.Errorf("json decoding failed: %w", err)
 	}
 	if response.Error != "" {
+		// Session expired, tell Go to refresh it
+		if resp.StatusCode == http.StatusNotFound && response.Error == "Session does not exist" {
+			return nil, driver.ErrBadConn
+		}
+
 		return nil, fmt.Errorf("valentina error: %s", response.Error)
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -334,6 +339,11 @@ func (c *vConn) ExecContext(ctx context.Context, query string, args []driver.Nam
 		return nil, fmt.Errorf("json decoding failed: %w", err)
 	}
 	if response.Error != "" {
+		// Session expired, tell Go to refresh it
+		if resp.StatusCode == http.StatusNotFound && response.Error == "Session does not exist" {
+			return nil, driver.ErrBadConn
+		}
+
 		return nil, fmt.Errorf("valentina error: %s", response.Error)
 	}
 	if resp.StatusCode != http.StatusOK {
