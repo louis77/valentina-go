@@ -23,6 +23,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Copy file to Valentina service
+      run: |
+        docker cp ./.github/vserver.ini valentina:/opt/VServer/vserver.ini
+
+    - name: Restart Valentina service
+      run: |
+        docker restart valentina
+
+    - name: Wait for Valentina service to restart
+      run: |
+        echo "Waiting for Valentina service to restart..."
+        sleep 10
+
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
