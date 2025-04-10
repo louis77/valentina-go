@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	ErrSessionTimeout = fmt.Errorf("REST session timed out")
+	ErrTxNotImplemented = fmt.Errorf("transactions are not supported")
 )
 
 func init() {
@@ -122,7 +122,9 @@ func (c *vConn) Close() error {
 }
 
 func (c *vConn) Begin() (driver.Tx, error) {
-	return vTx{}, nil
+	return vTx{
+		conn: c,
+	}, nil
 }
 
 // Connection internals
@@ -242,64 +244,6 @@ type vFastSQLResponse struct {
 	vError
 }
 
-func (c *vConn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
-	// Use Fast SQL
-	msg := vFastSQLRequest{
-		Vendor:   c.vendor,
-		Database: c.database[1:],
-		Query:    query,
-	}
-
-	if len(args) > 0 {
-		msg.Params = make([]any, len(args))
-		for i, arg := range args {
-			msg.Params[i] = arg.Value
-		}
-	}
-
-	resource := fmt.Sprintf("/rest/session_%s/sql_fast", c.sessionID)
-	resp, err := c.makeRequest(ctx, http.MethodPost, resource, msg)
-	if err != nil {
-		return nil, fmt.Errorf("makeRequest failed: %w", err)
-	}
-
-	response, err := readResponseBody[vFastSQLResponse](resp)
-	if err != nil {
-		return nil, fmt.Errorf("json decoding failed: %w", err)
-	}
-	if response.Error != "" {
-		// Session expired, tell Go to refresh it
-		if resp.StatusCode == http.StatusNotFound && response.Error == "Session does not exist" {
-			return nil, driver.ErrBadConn
-		}
-
-		return nil, fmt.Errorf("valentina error: %s", response.Error)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %v", resp.StatusCode)
-	}
-
-	// We can either have a Result_Table or AffectedRows (in case user is not using Execer)
-	switch {
-	case response.Name == "Result_Table":
-		var rows vRows
-		rows.columns = response.Fields
-		rows.records = response.Records
-		rows.pos = 0
-		return &rows, nil
-	case response.Name == "" && response.AffectedRows > 0:
-		// We artificialle create a affected_rows row
-		var rows vRows
-		rows.columns = []string{"affected_rows"}
-		rows.records = [][]any{{response.AffectedRows}}
-		rows.pos = 0
-		return &rows, nil
-	}
-
-	// Still here? Then we have an error
-	return nil, fmt.Errorf("unexpected response type: %s", response.Name)
-}
-
 type vResult struct {
 	affectedRows int64
 	lastInsertId int64
@@ -311,51 +255,6 @@ func (r vResult) LastInsertId() (int64, error) {
 
 func (r vResult) RowsAffected() (int64, error) {
 	return r.lastInsertId, nil
-}
-
-func (c *vConn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
-	// Use Fast SQL
-	msg := vFastSQLRequest{
-		Vendor:   c.vendor,
-		Database: c.database[1:],
-		Query:    query,
-	}
-
-	if len(args) > 0 {
-		msg.Params = make([]any, len(args))
-		for i, arg := range args {
-			msg.Params[i] = arg.Value
-		}
-	}
-
-	resource := fmt.Sprintf("/rest/session_%s/sql_fast", c.sessionID)
-	resp, err := c.makeRequest(ctx, http.MethodPost, resource, msg)
-	if err != nil {
-		return nil, fmt.Errorf("makeRequest failed: %w", err)
-	}
-
-	response, err := readResponseBody[vFastSQLResponse](resp)
-	if err != nil {
-		return nil, fmt.Errorf("json decoding failed: %w", err)
-	}
-	if response.Error != "" {
-		// Session expired, tell Go to refresh it
-		if resp.StatusCode == http.StatusNotFound && response.Error == "Session does not exist" {
-			return nil, driver.ErrBadConn
-		}
-
-		return nil, fmt.Errorf("valentina error: %s", response.Error)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %v", resp.StatusCode)
-	}
-
-	result := vResult{
-		affectedRows: response.AffectedRows,
-		lastInsertId: 0, // TODO: is this supported?
-	}
-
-	return &result, nil
 }
 
 // Pinger
@@ -409,19 +308,6 @@ func (s vStmt) Query(args []driver.Value) (driver.Rows, error) {
 		})
 	}
 	return s.conn.QueryContext(context.Background(), s.query, namedArgs)
-}
-
-// Tx
-
-type vTx struct {
-}
-
-func (tx vTx) Commit() error {
-	return nil
-}
-
-func (tx vTx) Rollback() error {
-	return nil
 }
 
 // Row

@@ -43,7 +43,7 @@ func main() {
 		t.Fatalf("failed to scan row: %v", err)
 	}
 
-	fmt.Printf("Now() is %s\n", now)
+	// Use data
 }
 ```
 
@@ -82,7 +82,7 @@ You can also use the `.verbose` command to see the results in a tabular format.
 
 The driver accepts the following parameters:
 
-- `vendor`: the vendor name (default: `Valentina`).
+- `vendor`: the vendor name (default: `Valentina`, others: `SQLite`, `DuckDB`).
 
 ## Notes about Valentina SQL
 
@@ -105,6 +105,7 @@ The driver will automatically convert the parameters to the right type.
 - Valentina does not support transactions
 - Valentina does not support implicit LastInsertId() when using Exec()
 - Prepared statements are not yet implemented
+- Expired REST session are automatically refreshed, queries willl not failed because of an expired session. Make sure that your Valentina server license has appropriate number of sessions that you need.
 
 ## Contributing
 

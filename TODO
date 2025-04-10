@@ -1,6 +1,7 @@
 - [X] Implement ExecContext
 - [X] Use json.Encoder instead of json.Marshal
-- [X] Destroy session when closing the connection.
-- [] Support refresh of session ID when it expires.
-- [] ~~Support transactions~~ (Valentina does not have transactions).
+- [X] Destroy session when closing the connection
+- [X] Refresh expired sessions automatically
+- [] Support transactions for non-Valentina engines
 - [] Check for types
+- [] Better time.Time handling
