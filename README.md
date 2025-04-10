@@ -12,7 +12,7 @@ go get github.com/louis77/valentina-go
 
 ## Usage
 
-This driver is using Valentina REST API. You need to activate it in Valentina server by setting an appropriate port in the `vserver.ini` file:
+This driver is using Valentina REST API. You need to activate it in Valentina server by setting an appropriate port in the [`vserver.ini`](https://valentina-db.com/docs/dokuwiki/v15/doku.php?id=valentina:products:vserver:manual:ini_file) file:
 
 ```ini
 [REST]
@@ -34,18 +34,36 @@ import (
 func main() {
 	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
 
-	row := db.QueryRow("SELECT now()")
+	row := db.QueryRow("SELECT now(), :1 as a_number", 69)
 
 	var now string
-	err = row.Scan(&now)
+	var anumber int
+	err = row.Scan(&now, &anumber)
 	if err != nil {
 		t.Fatalf("failed to scan row: %v", err)
 	}
 
 	fmt.Printf("Now() is %s\n", now)
-
 }
 ```
+
+You can also use the `vdriver.Config` struct to configure the connection:
+
+```go
+cfg := vdriver.Config{
+	Vendor:   vdriver.VendorValentina,
+	DB:       "testdb",
+	User:     "sa",
+	Password: "sa",
+	Host:     "localhost",
+	Port:     19998,
+	UseSSL:   false,
+}	
+
+db, err := sql.Open("valentina", cfg.FormatDSN())
+...
+```
+
 
 ### Use the CLI
 
@@ -60,11 +78,27 @@ $ vsql -h
 
 You can also use the `.verbose` command to see the results in a tabular format.
 
-### Parameters
+### Connection Parameters
 
 The driver accepts the following parameters:
 
 - `vendor`: the vendor name (default: `Valentina`).
+
+## Notes about Valentina SQL
+
+Placeholders for parameters are prefixed with a colon (`:`) and a number, starting from 1. This was, the same parameter can be used multiple times in the same query:
+
+```sql
+SELECT :1 + :2
+```
+
+
+Alternatively, you can use MySQL-style `?` placeholders:
+```sql
+SELECT ? + ?
+```
+
+The driver will automatically convert the parameters to the right type.
 
 ## Limitations
 

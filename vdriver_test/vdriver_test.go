@@ -13,19 +13,21 @@ import (
 )
 
 func Test(t *testing.T) {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
+	defer db.Close()
 
-	row := db.QueryRow("SELECT now()")
+	row := db.QueryRow("SELECT now(), :1 as a_number", 69)
 
 	var now string
-	err = row.Scan(&now)
+	var anumber int
+	err = row.Scan(&now, &anumber)
 	if err != nil {
 		t.Fatalf("failed to scan row: %v", err)
 	}
 
-	fmt.Printf("Now() is %s\n", now)
+	fmt.Printf("Now() is %s, anumber is %d\n", now, anumber)
 	fmt.Printf("Connections in use: %d\n", db.Stats().InUse)
 }

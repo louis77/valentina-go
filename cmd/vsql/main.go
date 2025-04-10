@@ -9,11 +9,10 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 
-	_ "github.com/louis77/valentina-go/vdriver"
+	"github.com/louis77/valentina-go/vdriver"
 )
 
 var db *sql.DB
@@ -61,7 +60,7 @@ func exec(line string, verbose bool) {
 }
 
 func main() {
-	fVendor := flag.String("vendor", "Valentina", "The vendor name, default 'Valentina'")
+	fVendor := flag.String("vendor", string(vdriver.VendorValentina), "The vendor name, default 'Valentina'")
 	fDB := flag.String("db", "", "The database name, required")
 	fUser := flag.String("u", "sa", "The user name, default 'sa'")
 	fPassword := flag.String("p", "sa", "The password, default 'sa'")
@@ -76,21 +75,18 @@ func main() {
 		return
 	}
 
-	scheme := "http"
-	if *fSSL {
-		scheme = "https"
-	}
-
-	connURL := url.URL{
-		Scheme:   scheme,
-		User:     url.UserPassword(*fUser, *fPassword),
-		Host:     fmt.Sprintf("%s:%d", *fHost, *fPort),
-		Path:     "/" + *fDB,
-		RawQuery: fmt.Sprintf("vendor=%s", *fVendor),
+	cfg := vdriver.Config{
+		Vendor:   vdriver.Vendor(*fVendor),
+		DB:       *fDB,
+		User:     *fUser,
+		Password: *fPassword,
+		Host:     *fHost,
+		Port:     *fPort,
+		UseSSL:   *fSSL,
 	}
 
 	var err error
-	db, err = sql.Open("valentina", connURL.String())
+	db, err = sql.Open("valentina", cfg.FormatDSN())
 	if err != nil {
 		panic(err)
 	}

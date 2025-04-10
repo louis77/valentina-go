@@ -226,10 +226,10 @@ func (c *vConn) createSession() error {
 }
 
 type vFastSQLRequest struct {
-	Vendor   string         `json:"vendor"`
-	Database string         `json:"database"`
-	Query    string         `json:"Query"`
-	Params   map[string]any `json:"Params"`
+	Vendor   string `json:"vendor"`
+	Database string `json:"database"`
+	Query    string `json:"Query"`
+	Params   []any  `json:"Params,omitzero"`
 }
 
 type vFastSQLResponse struct {
@@ -248,7 +248,13 @@ func (c *vConn) QueryContext(ctx context.Context, query string, args []driver.Na
 		Vendor:   c.vendor,
 		Database: c.database[1:],
 		Query:    query,
-		Params:   make(map[string]any),
+	}
+
+	if len(args) > 0 {
+		msg.Params = make([]any, len(args))
+		for i, arg := range args {
+			msg.Params[i] = arg.Value
+		}
 	}
 
 	resource := fmt.Sprintf("/rest/session_%s/sql_fast", c.sessionID)
@@ -308,7 +314,13 @@ func (c *vConn) ExecContext(ctx context.Context, query string, args []driver.Nam
 		Vendor:   c.vendor,
 		Database: c.database[1:],
 		Query:    query,
-		Params:   make(map[string]any),
+	}
+
+	if len(args) > 0 {
+		msg.Params = make([]any, len(args))
+		for i, arg := range args {
+			msg.Params[i] = arg.Value
+		}
 	}
 
 	resource := fmt.Sprintf("/rest/session_%s/sql_fast", c.sessionID)
