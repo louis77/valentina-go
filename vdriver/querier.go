@@ -26,8 +26,7 @@ func (c *vConn) QueryContext(ctx context.Context, query string, args []driver.Na
 		}
 	}
 
-	resource := fmt.Sprintf("/rest/session_%s/sql_fast", c.sessionID)
-	resp, err := c.makeRequest(ctx, http.MethodPost, resource, msg)
+	resp, err := c.makeRequest(ctx, http.MethodPost, "/rest/session_id/sql_fast", msg)
 	if err != nil {
 		return nil, fmt.Errorf("makeRequest failed: %w", err)
 	}

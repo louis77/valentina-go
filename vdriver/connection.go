@@ -31,7 +31,7 @@ func (c *vConn) Prepare(query string) (driver.Stmt, error) {
 // Close removes the REST session from the server
 func (c *vConn) Close() error {
 	ctx := context.Background()
-	resp, err := c.makeRequest(ctx, http.MethodDelete, "/rest/session_"+c.sessionID, nil)
+	resp, err := c.makeRequest(ctx, http.MethodDelete, "/rest/session_id", nil)
 	if err != nil {
 		return fmt.Errorf("makeRequest failed: %w", err)
 	}
