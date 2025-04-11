@@ -66,15 +66,20 @@ func (c *vConn) Ping(ctx context.Context) error {
 	}
 	defer rows.Close()
 
-	var version string
-	err = rows.Next([]driver.Value{&version})
+	values := make([]driver.Value, 1)
+	err = rows.Next(values)
 	if err != nil {
 		return err
+	}
+
+	version, ok := values[0].(string)
+	if !ok {
+		return fmt.Errorf("valentina error: version() returned invalid type")
 	}
 
 	if version == "" {
 		return fmt.Errorf("valentina error: version() returned an empty string")
 	}
-	fmt.Printf("Valentina server version: %s\n", version)
+
 	return nil
 }

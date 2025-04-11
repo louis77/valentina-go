@@ -35,3 +35,20 @@ func TestSimpleQuery(t *testing.T) {
 		t.Fatalf("anumber is %d, expected 69", anumber)
 	}
 }
+
+func TestPing(t *testing.T) {
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close database: %v", err)
+		}
+	}()
+
+	err = db.Ping()
+	if err != nil {
+		t.Fatalf("failed to ping: %v", err)
+	}
+}
