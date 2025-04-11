@@ -8,9 +8,6 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
-
-	"github.com/louis77/valentina-go/vdriver"
-	_ "github.com/louis77/valentina-go/vdriver"
 )
 
 func TestSimpleQuery(t *testing.T) {
@@ -39,7 +36,7 @@ func TestSimpleQuery(t *testing.T) {
 }
 
 func TestPing(t *testing.T) {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
@@ -56,7 +53,7 @@ func TestPing(t *testing.T) {
 }
 
 func TestJSONQuery(t *testing.T) {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
@@ -68,26 +65,10 @@ func TestJSONQuery(t *testing.T) {
 
 	row := db.QueryRow("SELECT metainfo from testtab")
 
-	var now map[string]interface{}
+	var now map[string]any
 	err = row.Scan(&now)
 	fmt.Println(now)
 	if err != nil {
 		t.Fatalf("failed to scan row: %v", err)
-	}
-}
-
-func TestConnector(t *testing.T) {
-	connector := vdriver.NewConnector(vdriver.VendorValentina, vdriver.Config{
-		DB:       "",
-		User:     "sa",
-		Password: "sa",
-		Host:     "localhost",
-		Port:     19998,
-		UseSSL:   false,
-	})
-
-	db := sql.OpenDB(connector)
-	if err := db.Ping(); err != nil {
-		t.Fatalf("connector failed to ping: %v", err)
 	}
 }

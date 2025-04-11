@@ -57,8 +57,13 @@ func (c Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	return &conn, nil
 }
 
-func (conn Connector) Driver() driver.Driver {
+func (c Connector) Driver() driver.Driver {
 	return vDriver{
-		Vendor: conn.vendor,
+		Vendor: c.vendor,
 	}
 }
+
+func (c Connector) Close() error {
+	return nil
+}
+
