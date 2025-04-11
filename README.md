@@ -71,6 +71,21 @@ cfg := vdriver.Config{
 db, err := sql.Open("valentina", cfg.FormatDSN())
 ```
 
+Or use `sql.OpenDB()`:
+
+```go
+	connector := vdriver.NewConnector(vdriver.VendorValentina, vdriver.Config{
+		DB:       "",
+		User:     "sa",
+		Password: "sa",
+		Host:     "localhost",
+		Port:     19998,
+		UseSSL:   false,
+	})
+
+	db := sql.OpenDB(connector)
+```
+
 Valentina Server supports three different engines. Use the `driverName` to indicate which engine you want use:
 
 - Valentina DB: `valentina`
@@ -135,6 +150,7 @@ The driver will automatically convert the parameters to the right type.
 - Prepared statements work, the REST API doesn't supporting caching statements, so each execution of a prepared statement will send the full query text to the server
 - Expired REST sessions are automatically refreshed, queries will not fail because of an expired session
 - If your license allows only a limited number of REST connections, don't forget to set the maximum open connections, i.e.: `db.SetMaxOpenConns(3)`
+- "Notifications" are not supported through the REST API
 
 ## Contributing
 

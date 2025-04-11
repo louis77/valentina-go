@@ -30,6 +30,7 @@ const (
 
 var (
 	ErrTxNotImplemented = fmt.Errorf("transactions are not supported")
+	ErrNotSupported     = fmt.Errorf("this feature is not supported")
 )
 
 func init() {
@@ -248,9 +249,9 @@ type vResult struct {
 }
 
 func (r vResult) LastInsertId() (int64, error) {
-	return r.affectedRows, nil
+	return 0, ErrNotSupported
 }
 
 func (r vResult) RowsAffected() (int64, error) {
-	return r.lastInsertId, nil
+	return r.affectedRows, nil
 }

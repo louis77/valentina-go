@@ -27,6 +27,10 @@ type Config struct {
 }
 
 func (cfg Config) FormatDSN() string {
+	return cfg.makeURL().String()
+}
+
+func (cfg Config) makeURL() *url.URL {
 	scheme := "http"
 	if cfg.UseSSL {
 		scheme = "https"
@@ -39,5 +43,5 @@ func (cfg Config) FormatDSN() string {
 		Path:   "/" + cfg.DB,
 	}
 
-	return connURL.String()
+	return &connURL
 }

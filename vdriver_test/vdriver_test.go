@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/louis77/valentina-go/vdriver"
 	_ "github.com/louis77/valentina-go/vdriver"
 )
 
@@ -73,5 +74,20 @@ func TestJSONQuery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to scan row: %v", err)
 	}
+}
 
+func TestConnector(t *testing.T) {
+	connector := vdriver.NewConnector(vdriver.VendorValentina, vdriver.Config{
+		DB:       "",
+		User:     "sa",
+		Password: "sa",
+		Host:     "localhost",
+		Port:     19998,
+		UseSSL:   false,
+	})
+
+	db := sql.OpenDB(connector)
+	if err := db.Ping(); err != nil {
+		t.Fatalf("connector failed to ping: %v", err)
+	}
 }
