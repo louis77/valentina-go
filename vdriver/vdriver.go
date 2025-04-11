@@ -143,7 +143,9 @@ func (c *vConn) makeRequest(ctx context.Context, method string, resource string,
 		payload = io.NopCloser(bytes.NewReader(bodyBytes)) // Use a fresh reader
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, c.restURL.Scheme+"://"+c.restURL.Host+":"+resource, payload)
+	endpoint := c.restURL.Scheme + "://" + c.restURL.Host + resource
+
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, payload)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ package vdriver_test
 
 import (
 	"database/sql"
-	"fmt"
 	"testing"
 
 	_ "github.com/louis77/valentina-go/vdriver"
@@ -17,7 +16,11 @@ func TestSimpleQuery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close database: %v", err)
+		}
+	}()
 
 	row := db.QueryRow("SELECT now(), :1 as a_number", 69)
 
@@ -31,7 +34,4 @@ func TestSimpleQuery(t *testing.T) {
 	if anumber != 69 {
 		t.Fatalf("anumber is %d, expected 69", anumber)
 	}
-
-	fmt.Printf("Now() is %s, anumber is %d\n", now, anumber)
-	fmt.Printf("Connections in use: %d\n", db.Stats().InUse)
 }
