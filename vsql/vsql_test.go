@@ -19,16 +19,23 @@ func TestTables(t *testing.T) {
 	}
 
 	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS testdb")
-	db.Close() // Close the connection to the server, so we can create a new one
+	// Close the connection to the server, so we can create a new one
 	if err != nil {
 		t.Fatalf("failed to create database: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close database: %v", err)
 	}
 
 	db2, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
-	defer db2.Close()
+	defer func() {
+		if err := db2.Close(); err != nil {
+			t.Fatalf("failed to close database: %v", err)
+		}
+	}()
 
 	_, err = db2.Exec("CREATE TABLE IF NOT EXISTS testtable (id INT)")
 	if err != nil {
