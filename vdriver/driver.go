@@ -33,12 +33,16 @@ var (
 )
 
 func init() {
-	sql.Register("valentina", vDriver{})
+	sql.Register("valentina", vDriver{Vendor: VendorValentina})
+	sql.Register("vsqlite", vDriver{Vendor: VendorSQLite})
+	sql.Register("vduckdb", vDriver{Vendor: VendorDuckDB})
 }
 
 // Driver
 
-type vDriver struct{}
+type vDriver struct {
+	Vendor Vendor
+}
 
 func (d vDriver) Open(restURL string) (driver.Conn, error) {
 	hc := http.Client{
@@ -54,21 +58,15 @@ func (d vDriver) Open(restURL string) (driver.Conn, error) {
 	}
 
 	database := parsedURL.Path
-	if database == "" {
-		return nil, fmt.Errorf("missing database name")
-	}
-
-	params := parsedURL.Query()
-	vendor := params.Get("vendor")
-	if vendor == "" {
-		vendor = defaultVendor
+	if database != "" {
+		database = strings.TrimPrefix(database, "/")
 	}
 
 	conn := vConn{
 		httpClient: &hc,
 		restURL:    parsedURL,
 		database:   database,
-		vendor:     vendor,
+		vendor:     string(d.Vendor),
 	}
 
 	if err := conn.createSession(); err != nil {

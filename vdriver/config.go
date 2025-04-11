@@ -18,7 +18,6 @@ const (
 )
 
 type Config struct {
-	Vendor   Vendor
 	DB       string
 	User     string
 	Password string
@@ -34,11 +33,10 @@ func (cfg Config) FormatDSN() string {
 	}
 
 	connURL := url.URL{
-		Scheme:   scheme,
-		User:     url.UserPassword(cfg.User, cfg.Password),
-		Host:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Path:     "/" + cfg.DB,
-		RawQuery: fmt.Sprintf("vendor=%s", cfg.Vendor),
+		Scheme: scheme,
+		User:   url.UserPassword(cfg.User, cfg.Password),
+		Host:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Path:   "/" + cfg.DB,
 	}
 
 	return connURL.String()

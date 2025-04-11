@@ -15,7 +15,7 @@ func (c *vConn) QueryContext(ctx context.Context, query string, args []driver.Na
 	// Use Fast SQL
 	msg := vFastSQLRequest{
 		Vendor:   c.vendor,
-		Database: c.database[1:],
+		Database: c.database,
 		Query:    query,
 	}
 

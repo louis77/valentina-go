@@ -76,7 +76,6 @@ func main() {
 	}
 
 	cfg := vdriver.Config{
-		Vendor:   vdriver.Vendor(*fVendor),
 		DB:       *fDB,
 		User:     *fUser,
 		Password: *fPassword,
@@ -86,7 +85,7 @@ func main() {
 	}
 
 	var err error
-	db, err = sql.Open("valentina", cfg.FormatDSN())
+	db, err = sql.Open(*fVendor, cfg.FormatDSN())
 	if err != nil {
 		panic(err)
 	}

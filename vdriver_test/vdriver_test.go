@@ -6,13 +6,14 @@ package vdriver_test
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
 
 	_ "github.com/louis77/valentina-go/vdriver"
 )
 
 func TestSimpleQuery(t *testing.T) {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998")
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
@@ -51,4 +52,26 @@ func TestPing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to ping: %v", err)
 	}
+}
+
+func TestJSONQuery(t *testing.T) {
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/testdb?vendor=Valentina")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close database: %v", err)
+		}
+	}()
+
+	row := db.QueryRow("SELECT metainfo from testtab")
+
+	var now map[string]interface{}
+	err = row.Scan(&now)
+	fmt.Println(now)
+	if err != nil {
+		t.Fatalf("failed to scan row: %v", err)
+	}
+
 }

@@ -6,6 +6,8 @@ This is a non-offical Go driver for Valentina DB based on Valentina REST API. It
 
 Tested with [Valentina DB](https://valentina-db.com) 15.1.2. It should work with versions >= v.15.0.1, which introduced the REST API.
 
+Why use Valentina's REST API and not the native binary protocol? The later is proprietary, closed-source and would require CGo and linking with the official Valentina C SDK. The maintainer decided to use the dependency-free REST API instead.
+
 ## Installation
 
 ```bash
@@ -34,7 +36,12 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998/?vendor=Valentina")
+	// Valentina DB
+	db, err := sql.Open("valentina", "http://sa:sa@localhost:19998")
+	// Valentina SQLite
+	// db, err := sql.Open("vsqlite", "http://sa:sa@localhost:19998")
+	// Valentina SQLite
+	// db, err := sql.Open("vduckdb", "http://sa:sa@localhost:19998")
 
 	row := db.QueryRow("SELECT now(), :1 as a_number", 69)
 
@@ -53,19 +60,22 @@ You can also use the `vdriver.Config` struct to configure the connection:
 
 ```go
 cfg := vdriver.Config{
-	Vendor:   vdriver.VendorValentina,
 	DB:       "testdb",
 	User:     "sa",
 	Password: "sa",
 	Host:     "localhost",
 	Port:     19998,
 	UseSSL:   false,
-}	
+}
 
 db, err := sql.Open("valentina", cfg.FormatDSN())
-...
 ```
 
+Valentina Server supports three different engines. Use the `driverName` to indicate which engine you want use:
+
+- Valentina DB: `valentina`
+- Valentina SQLite: `vsqlite`
+- Valentina DuckDB: `vduckdb`
 
 ### Use the CLI
 
@@ -110,8 +120,8 @@ Placeholders for parameters are prefixed with a colon (`:`) and a number, starti
 SELECT :1 + :2
 ```
 
-
 Alternatively, you can use MySQL-style `?` placeholders:
+
 ```sql
 SELECT ? + ?
 ```
@@ -121,9 +131,10 @@ The driver will automatically convert the parameters to the right type.
 ## Limitations
 
 - Valentina does not support transactions
-- Valentina does not support implicit LastInsertId() when using Exec()
-- Prepared statements are not yet implemented
-- Expired REST sessions are automatically refreshed, queries will not fail because of an expired session. Make sure that your Valentina server license has appropriate number of sessions that you need.
+- Valentina does not support implicit LastInsertId() when using Exec(). You need to fetch it with `SELECT Last_RecID()`
+- Prepared statements work, the REST API doesn't supporting caching statements, so each execution of a prepared statement will send the full query text to the server
+- Expired REST sessions are automatically refreshed, queries will not fail because of an expired session
+- If your license allows only a limited number of REST connections, don't forget to set the maximum open connections, i.e.: `db.SetMaxOpenConns(3)`
 
 ## Contributing
 
@@ -131,4 +142,4 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
 
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.  "Valentina", "Valentina Server", "Valentina Studio" are trademarks of [Paradigma Software, Inc](https://www.valentina-db.com). This project is a voluntary effort and neither paid for nor affiliated with Paradigma Software.
