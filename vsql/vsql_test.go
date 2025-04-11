@@ -17,9 +17,9 @@ func TestTables(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to open database: %v", err)
 	}
-	defer db.Close()
 
 	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS testdb")
+	db.Close() // Close the connection to the server, so we can create a new one
 	if err != nil {
 		t.Fatalf("failed to create database: %v", err)
 	}
