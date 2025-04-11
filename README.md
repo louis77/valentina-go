@@ -1,5 +1,7 @@
 # Valentina Go Driver
 
+[![Go](https://github.com/louis77/valentina-go/actions/workflows/go.yml/badge.svg)](https://github.com/louis77/valentina-go/actions/workflows/go.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/louis77/valentina-go)](https://goreportcard.com/report/github.com/louis77/valentina-go)
+
 This is a non-offical Go driver for Valentina DB based on Valentina REST API. It implements the [database/sql](https://pkg.go.dev/database/sql) package.
 
 Tested with [Valentina DB](https://valentina-db.com) 15.1.2. It should work with versions >= v.15.0.1, which introduced the REST API.
